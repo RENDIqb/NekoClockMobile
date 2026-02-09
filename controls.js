@@ -32,8 +32,8 @@ function initControls() {
 
     updateScale(currentScale, false);
 
-    zoomInBtn.onclick = (e) => { e.stopPropagation(); updateScale(currentScale + 0.25); };
-    zoomOutBtn.onclick = (e) => { e.stopPropagation(); updateScale(currentScale - 0.25); };
+    zoomInBtn.onclick = (e) => { e.stopPropagation(); updateScale(currentScale + 0.01); };
+    zoomOutBtn.onclick = (e) => { e.stopPropagation(); updateScale(currentScale - 0.01); };
     
     resetBtn.onclick = (e) => {
         e.stopPropagation();
