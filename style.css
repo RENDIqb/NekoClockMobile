@@ -1,0 +1,69 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #000000;
+    user-select: none;
+    overflow: hidden;
+}
+
+.clock-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.clock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: scale(var(--clock-scale, 1)); 
+    transform-origin: center;
+    image-rendering: pixelated; 
+    image-rendering: crisp-edges;
+    animation: clockFadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+
+
+@keyframes clockFadeIn {
+    to {
+        opacity: 1;
+        transform: scale(var(--clock-scale, 1));
+    }
+}
+
+.digit {
+    width: 95px; 
+    height: 200px;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 0 2px; 
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    image-rendering: pixelated;
+}
+
+@keyframes digitChange {
+    0% { 
+        opacity: 0; 
+        transform: translateY(20px) scale(0.9); 
+        filter: brightness(1.5);
+    }
+    50% {
+        opacity: 0.8;
+        filter: brightness(1.2);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+        filter: brightness(1);
+    }
+}
