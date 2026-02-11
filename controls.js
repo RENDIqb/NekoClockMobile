@@ -9,32 +9,38 @@ function initControls() {
     
     let currentScale = parseFloat(localStorage.getItem('neko-clock-scale')) || 1.0;
     let zoomInterval = null;
+    let delayTimeout = null;
+    let currentSpeed = 100;
 
     const updateScale = (newScale, save = true) => {
         currentScale = Math.round(Math.min(Math.max(newScale, 0.5), 5.0) * 100) / 100;
-        
         document.documentElement.style.setProperty('--clock-scale', currentScale);
+        if (zoomText) zoomText.textContent = `${Math.round(currentScale * 100)}%`;
+        if (save) localStorage.setItem('neko-clock-scale', currentScale);
+    };
+
+    const runAutoZoom = (delta) => {
+        updateScale(currentScale + delta);
         
-        if (zoomText) {
-            zoomText.textContent = `${Math.round(currentScale * 100)}%`;
-        }
+        currentSpeed = Math.max(10, currentSpeed - 5);
         
-        if (save) {
-            localStorage.setItem('neko-clock-scale', currentScale);
-        }
+        zoomInterval = setTimeout(() => runAutoZoom(delta), currentSpeed);
     };
 
     const startZoom = (delta) => {
-        if (zoomInterval) return;
         updateScale(currentScale + delta);
-        zoomInterval = setInterval(() => {
-            updateScale(currentScale + delta);
-        }, 50);
+        currentSpeed = 100;
+
+        delayTimeout = setTimeout(() => {
+            runAutoZoom(delta);
+        }, 400);
     };
 
     const stopZoom = () => {
-        clearInterval(zoomInterval);
+        clearTimeout(delayTimeout);
+        clearTimeout(zoomInterval);
         zoomInterval = null;
+        delayTimeout = null;
     };
 
     [
@@ -43,14 +49,14 @@ function initControls() {
     ].forEach(({ btn, delta }) => {
         if (!btn) return;
 
-
         btn.addEventListener('mousedown', (e) => { 
+            if (e.button !== 0) return;
             e.stopPropagation(); 
             startZoom(delta); 
         });
 
         btn.addEventListener('touchstart', (e) => { 
-            if (e.cancelable) e.preventDefault();
+            if (e.cancelable) e.preventDefault(); 
             e.stopPropagation(); 
             startZoom(delta); 
         }, { passive: false });
@@ -88,9 +94,7 @@ function initControls() {
         fullscreenBtn.onclick = (e) => {
             e.stopPropagation();
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Error attempting to enable fullscreen: ${err.message}`);
-                });
+                document.documentElement.requestFullscreen().catch(() => {});
             } else {
                 document.exitFullscreen();
             }
