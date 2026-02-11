@@ -15,6 +15,7 @@ body {
     align-items: center;
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
 }
 
 .clock {
@@ -27,13 +28,11 @@ body {
     image-rendering: pixelated; 
     image-rendering: crisp-edges;
     animation: clockFadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    margin-left: -10px; 
+    margin-right: -10px;
 }
 
 @keyframes clockFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(calc(var(--clock-scale, 1) * 0.8));
-    }
     to {
         opacity: 1;
         transform: scale(var(--clock-scale, 1));
@@ -43,10 +42,11 @@ body {
 .digit {
     width: 95px; 
     height: 200px;
-    background-size: contain;
+    background-size: contain; 
     background-repeat: no-repeat;
-    background-position: center;
-    margin: 0 5px; 
+    background-position: center bottom;
+    margin: 0 -5px;
     flex-shrink: 0;
     image-rendering: pixelated;
+    transition: transform 0.3s ease;
 }
