@@ -1,105 +1,102 @@
-function initControls() {
-    const zoomInBtn = document.getElementById('btn-zoom-in');
-    const zoomOutBtn = document.getElementById('btn-zoom-out');
-    const zoomText = document.getElementById('zoom-value');
-    const fullscreenBtn = document.getElementById('btn-fullscreen');
-    const resetBtn = document.getElementById('btn-reset');
-    const resetIcon = document.querySelector('.icon-reset');
-    const controlsContainer = document.querySelector('.controls-container');
-    
-    let currentScale = parseFloat(localStorage.getItem('neko-clock-scale')) || 1.0;
+// controls.js
+(function() {
+    const CONFIG = {
+        storageKey: 'app-ui-scale',
+        minScale: 0.5,
+        maxScale: 5.0,
+        defaultScale: 1.0,
+        step: 0.01
+    };
+
+    let currentScale = parseFloat(localStorage.getItem(CONFIG.storageKey)) || CONFIG.defaultScale;
     let zoomInterval = null;
     let delayTimeout = null;
     let currentSpeed = 100;
 
-    const updateScale = (newScale, save = true) => {
-        currentScale = Math.round(Math.min(Math.max(newScale, 0.5), 5.0) * 100) / 100;
-        document.documentElement.style.setProperty('--clock-scale', currentScale);
+    function applyScale(save = true) {
+        currentScale = Math.round(Math.min(Math.max(currentScale, CONFIG.minScale), CONFIG.maxScale) * 100) / 100;
+        document.documentElement.style.setProperty('--ui-scale', currentScale);
+        
+        const zoomText = document.getElementById('zoom-value');
         if (zoomText) zoomText.textContent = `${Math.round(currentScale * 100)}%`;
-        if (save) localStorage.setItem('neko-clock-scale', currentScale);
-    };
+        
+        if (save) localStorage.setItem(CONFIG.storageKey, currentScale);
+    }
 
     const runAutoZoom = (delta) => {
-        updateScale(currentScale + delta);
-        
+        currentScale += delta;
+        applyScale();
         currentSpeed = Math.max(10, currentSpeed - 5);
-        
         zoomInterval = setTimeout(() => runAutoZoom(delta), currentSpeed);
     };
 
     const startZoom = (delta) => {
-        updateScale(currentScale + delta);
+        currentScale += delta;
+        applyScale();
         currentSpeed = 100;
-
-        delayTimeout = setTimeout(() => {
-            runAutoZoom(delta);
-        }, 400);
+        delayTimeout = setTimeout(() => runAutoZoom(delta), 400);
     };
 
     const stopZoom = () => {
         clearTimeout(delayTimeout);
         clearTimeout(zoomInterval);
-        zoomInterval = null;
-        delayTimeout = null;
     };
 
-    [
-        { btn: zoomInBtn, delta: 0.01 },
-        { btn: zoomOutBtn, delta: -0.01 }
-    ].forEach(({ btn, delta }) => {
-        if (!btn) return;
+    function setupEventListeners() {
+        const ui = {
+            in: document.getElementById('btn-zoom-in'),
+            out: document.getElementById('btn-zoom-out'),
+            reset: document.getElementById('btn-reset'),
+            fs: document.getElementById('btn-fullscreen'),
+            container: document.querySelector('.controls-container')
+        };
 
-        btn.addEventListener('mousedown', (e) => { 
-            if (e.button !== 0) return;
-            e.stopPropagation(); 
-            startZoom(delta); 
+        // Zoom logic
+        [{ btn: ui.in, d: CONFIG.step }, { btn: ui.out, d: -CONFIG.step }].forEach(({ btn, d }) => {
+            if (!btn) return;
+            btn.addEventListener('mousedown', (e) => { if(e.button === 0) startZoom(d); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); startZoom(d); }, {passive: false});
         });
-
-        btn.addEventListener('touchstart', (e) => { 
-            if (e.cancelable) e.preventDefault(); 
-            e.stopPropagation(); 
-            startZoom(delta); 
-        }, { passive: false });
 
         window.addEventListener('mouseup', stopZoom);
         window.addEventListener('touchend', stopZoom);
-        window.addEventListener('touchcancel', stopZoom);
-    });
 
-    setTimeout(() => {
-        if (controlsContainer) controlsContainer.classList.add('visible');
-    }, 500);
-
-    document.addEventListener('click', (e) => {
-        if (controlsContainer && !e.target.closest('.controls-bar')) {
-            controlsContainer.classList.toggle('hidden');
+        // Reset logic
+        if (ui.reset) {
+            ui.reset.onclick = () => {
+                currentScale = CONFIG.defaultScale;
+                applyScale();
+                const icon = ui.reset.querySelector('.icon-reset');
+                if (icon) {
+                    icon.classList.remove('rotate-animation');
+                    void icon.offsetWidth;
+                    icon.classList.add('rotate-animation');
+                }
+            };
         }
+
+        // Fullscreen logic
+        if (ui.fs) {
+            ui.fs.onclick = () => {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+                else document.exitFullscreen();
+            };
+        }
+
+        // Toggle visibility
+        document.addEventListener('click', (e) => {
+            if (ui.container && !e.target.closest('.controls-bar')) {
+                ui.container.classList.toggle('hidden');
+            }
+        });
+
+        // Initial show
+        setTimeout(() => ui.container?.classList.add('visible'), 500);
+    }
+
+    // Инициализация
+    window.addEventListener('DOMContentLoaded', () => {
+        applyScale(false);
+        setupEventListeners();
     });
-
-    updateScale(currentScale, false);
-
-    if (resetBtn) {
-        resetBtn.onclick = (e) => {
-            e.stopPropagation();
-            updateScale(1.0);
-            if (resetIcon) {
-                resetIcon.classList.remove('rotate-animation');
-                void resetIcon.offsetWidth;
-                resetIcon.classList.add('rotate-animation');
-            }
-        };
-    }
-
-    if (fullscreenBtn) {
-        fullscreenBtn.onclick = (e) => {
-            e.stopPropagation();
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                document.exitFullscreen();
-            }
-        };
-    }
-}
-
-window.addEventListener('load', initControls);
+})();

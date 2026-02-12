@@ -3,18 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NekoClock</title>
+    <link rel="stylesheet" href="fonts.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="controls.css">
-    <link rel="stylesheet" href="fonts.css">
-    
-    <script>
-        (function() {
-            const savedScale = localStorage.getItem('neko-clock-scale') || '1.0';
-            document.documentElement.style.setProperty('--clock-scale', savedScale);
-        })();
-    </script>
 </head>
 <body>
     <div class="clock-wrapper">
@@ -33,7 +25,7 @@
     
         <div class="controls-bar">
             <button class="control-btn" id="btn-zoom-out"></button>
-            <span id="zoom-value"></span>
+            <span id="zoom-value">100%</span>
             <button class="control-btn" id="btn-zoom-in"></button>
         </div>
         
